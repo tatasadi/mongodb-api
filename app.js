@@ -4,18 +4,30 @@ const circulationRepo = require("./repos/circulationRepo")
 const data = require("./circulation.json")
 
 dotenv.config()
+const url = process.env.MONGODB_URL
+const dbName = process.env.MONGODB_DB_NAME
 
 async function main() {
-  console.log(process.env.MONGODB_URL)
-  const client = new MongoClient(process.env.MONGODB_URL)
-  await client.connect()
+  const client = new MongoClient(url)
+  try {
+    await client.connect()
 
-  const results = await circulationRepo.loadData(data)
-  console.log(results.insertedCount, results.ops)
+    //const results = await circulationRepo.loadData(data)
+    //console.log(results.insertedCount, results.ops)
 
-  const admin = client.db(process.env.MONGODB_DB_NAME).admin()
-  //console.log(await admin.serverStatus())
-  console.log(await admin.listDatabases())
+    const items = await circulationRepo.get()
+    console.log(items)
+  } catch (error) {
+    console.log(error)
+  } finally {
+    const admin = client.db(dbName).admin()
+    //console.log(await admin.serverStatus())
+
+    //await client.db(dbName).dropDatabase()
+    console.log(await admin.listDatabases())
+
+    client.close()
+  }
 }
 
 main()
